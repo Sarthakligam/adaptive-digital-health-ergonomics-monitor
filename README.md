@@ -6,11 +6,13 @@ ergonomic break reminders after sustained continuous use, syncs daily
 summaries to AWS, and visualizes history through a React dashboard.
 
 Day-count history: scoped as a 25-day build, expanded to 30 for buffer
-room, then streamlined to 28 after the initial environment setup
-(RHEL VM, Python/pynput, SQLite schema) was folded into a single Day 1
-commit. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full
-day-by-day plan and current progress, and
-[`docs/VIVA_PREP.md`](docs/VIVA_PREP.md) for exam-prep questions per day.
+room, briefly compressed to 20, restarted at 28 after folding initial
+setup into one Day 1 commit, and compressed again to the current
+**17 days** once real consolidation was possible. See
+[`docs/ROADMAP.md`](docs/ROADMAP.md) for the day-by-day plan and
+current progress, [`docs/VIVA_PREP.md`](docs/VIVA_PREP.md) for
+exam-prep questions, and [`docs/SETUP.md`](docs/SETUP.md) for a
+from-scratch environment rebuild if you're ever on a different machine.
 
 ## Architecture
 
@@ -28,13 +30,13 @@ Local Machine (RHEL 9)
 
 ## Repo layout
 
-| Folder       | Contents                                                   |
-|--------------|--------------------------------------------------------------|
-| `daemon/`    | Python tracking daemon, local SQLite schema, systemd unit    |
-| `cloud/`     | AWS sync script, Lambda function, RDS schema                 |
-| `dashboard/` | React frontend                                                |
-| `docs/`      | Roadmap, viva prep, architecture diagrams, report material     |
-| `scripts/`   | Dev tooling (optional — not currently used; commits are manual) |
+| Folder       | Contents                                                        |
+|--------------|--------------------------------------------------------------------|
+| `daemon/`    | Python tracking daemon (`tracker.py`, `daemon.py`), local SQLite schema (`db.py`), systemd unit |
+| `cloud/`     | AWS sync script, Lambda function, RDS schema                        |
+| `dashboard/` | React frontend                                                       |
+| `docs/`      | Roadmap, viva prep, setup/recovery notes, architecture diagrams        |
+| `scripts/`   | Dev tooling (optional — not currently used; commits are manual)       |
 
 ## Daily progress log
 
