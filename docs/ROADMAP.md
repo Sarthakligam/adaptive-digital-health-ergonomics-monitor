@@ -12,7 +12,7 @@ Status reflects real progress, not a fixed schedule.
 - [x] **Day 1** — RHEL 9 VM; Python3/pip/venv/pynput/sqlite installed, X11 confirmed; local SQLite schema (`daemon/db.py`) written and tested.
 - [x] **Day 2** — Activity-tracking state machine (`daemon/tracker.py`) — idle timeout + continuous-use detection, tested with a fake clock.
 - [x] **Day 3** — Real pynput listeners wired to the tracker, events logged to SQLite (`daemon/daemon.py`).
-- [ ] **Day 4** — Daemon testing/refinement + FastAPI wrapper with local WebSocket server (port 8000)
+- [x] **Day 4** — FastAPI wrapper (`daemon/main.py`) with local WebSocket server (port 8000) broadcasting TRIGGER_BREAK, plus a POST endpoint for break outcomes.
 - [ ] **Day 5** — `ergomonitor.service` systemd unit, including boot/restart/background testing
 
 ## Phase 2: AWS Cloud Integration (Days 6–10)
