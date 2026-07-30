@@ -9,24 +9,56 @@ Then type or move the mouse and watch the terminal for logged events.
 Ctrl+C to stop.
 """
 
+import logging
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
+import config
 from tracker import ActivityTracker
 from db import get_connection, init_db
+
+logger = logging.getLogger(__name__)
 
 
 def log_event(event_type: str) -> None:
     """
-    Write one row to the events table. No key content is ever read or
-    stored here — only the fact that a tracker-level event occurred
-    (break_triggered / went_idle) and when.
+    Write one row to the events table, tagged with this device's
+    persistent device_id. No key content is ever read or stored here —
+    only the fact that a tracker-level event occurred and when.
     """
     conn = get_connection()
     try:
         conn.execute(
-            "INSERT INTO events (event_type, timestamp) VALUES (?, ?)",
-            (event_type, datetime.now(timezone.utc).isoformat(timespec="seconds")),
+            "INSERT INTO events (device_id, event_type, timestamp) VALUES (?, ?, ?)",
+            (config.DEVICE_ID, event_type, datetime.now(timezone.utc).isoformat(timespec="seconds")),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def log_session(duration_seconds: float, ended_reason: str) -> None:
+    """
+    Write one row to the sessions table when a session actually ends
+    (real break taken, or went idle) — never on snooze, since snoozing
+    doesn't end the session. Timestamps are derived from "now minus
+    duration" since tracker.py deliberately works in monotonic seconds,
+    not wall-clock time (see tracker.py's docstring for why).
+    """
+    end_time = datetime.now(timezone.utc)
+    start_time = end_time - timedelta(seconds=duration_seconds)
+    conn = get_connection()
+    try:
+        conn.execute(
+            "INSERT INTO sessions (device_id, start_time, end_time, duration_seconds, ended_reason) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (
+                config.DEVICE_ID,
+                start_time.isoformat(timespec="seconds"),
+                end_time.isoformat(timespec="seconds"),
+                int(duration_seconds),
+                ended_reason,
+            ),
         )
         conn.commit()
     finally:
@@ -34,13 +66,18 @@ def log_event(event_type: str) -> None:
 
 
 def on_trigger_break() -> None:
-    print("[daemon] TRIGGER_BREAK — 20 minutes of continuous activity")
+    logger.info("TRIGGER_BREAK — 20 minutes of continuous activity")
     log_event("break_triggered")
 
 
 def on_go_idle() -> None:
-    print("[daemon] user went idle")
+    logger.info("user went idle")
     log_event("went_idle")
+
+
+def on_session_end(duration_seconds: float, reason: str) -> None:
+    logger.info(f"session ended: {duration_seconds:.0f}s ({reason})")
+    log_session(duration_seconds, reason)
 
 
 def start_listeners(tracker: ActivityTracker):
@@ -75,15 +112,22 @@ def start_listeners(tracker: ActivityTracker):
 
 
 def main() -> None:
+    config.setup_logging()
     init_db()  # safe every startup — CREATE TABLE IF NOT EXISTS
 
-    tracker = ActivityTracker(on_trigger_break=on_trigger_break, on_go_idle=on_go_idle)
+    tracker = ActivityTracker(
+        on_trigger_break=on_trigger_break,
+        on_go_idle=on_go_idle,
+        on_session_end=on_session_end,
+        idle_timeout=config.IDLE_TIMEOUT_SECONDS,
+        continuous_threshold=config.CONTINUOUS_THRESHOLD_SECONDS,
+    )
     keyboard_listener, mouse_listener = start_listeners(tracker)
 
     tracker_thread = threading.Thread(target=tracker.run, daemon=True)
     tracker_thread.start()
 
-    print("[daemon] running — type or move the mouse. Ctrl+C to stop.")
+    logger.info(f"daemon running (device_id={config.DEVICE_ID}) — Ctrl+C to stop.")
     try:
         keyboard_listener.join()
     except KeyboardInterrupt:
@@ -92,7 +136,7 @@ def main() -> None:
         tracker.stop()
         keyboard_listener.stop()
         mouse_listener.stop()
-        print("\n[daemon] stopped")
+        logger.info("daemon stopped")
 
 
 if __name__ == "__main__":
