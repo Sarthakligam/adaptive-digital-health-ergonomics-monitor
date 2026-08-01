@@ -18,7 +18,7 @@ Status reflects real progress, not a fixed schedule.
 - [x] **Day 5** — Production-readiness refactor: centralized config (`config.py`, `.env`), real logging, `device_id`-aware schema.
 - [x] **Day 6** — `sessions` table; `tracker.py` gains `snooze_break()` (grace-period suppression, does NOT reset the streak) and an `on_session_end` callback; `/break-outcome` now correctly distinguishes a real break from a snooze.
 - [x] **Day 7** — Digital Wellness Score (explainable, `wellness.py`) + Fatigue Risk Indicator (Low/Moderate/High) + Daily Wellness Goal, exposed via `GET /wellness/today`.
-- [ ] **Day 8** — Analytics (session stats, trends) + Health Timeline query + Weekly/Monthly Reports + CSV/JSON export
+- [x] **Day 8** — Analytics (`analytics.py`: session stats, daily trend), Health Timeline (merges events + healthy sessions), Weekly/Monthly Reports, CSV/JSON export — all exposed via new endpoints.
 - [ ] **Day 9** — Adaptive (heuristic) reminder intervals + Configurable Wellness Profiles + Categorized Smart Suggestions
 
 ## Phase 2: Linux Deployment (Day 10)

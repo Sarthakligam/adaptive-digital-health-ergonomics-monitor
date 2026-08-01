@@ -22,7 +22,7 @@ import logging
 import threading
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Response
 from pydantic import BaseModel
 
 import config
@@ -31,6 +31,7 @@ from db import init_db
 from daemon import log_event, log_session, start_listeners
 from ws_manager import ConnectionManager
 from wellness import compute_daily_wellness
+import analytics
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +68,13 @@ async def lifespan(app: FastAPI):
 
     init_db()
     tracker = ActivityTracker(
-        on_trigger_break=on_trigger_break,
-        on_go_idle=on_go_idle,
-        on_session_end=on_session_end,
-        idle_timeout=config.IDLE_TIMEOUT_SECONDS,
-        continuous_threshold=config.CONTINUOUS_THRESHOLD_SECONDS,
-        check_interval=config.CHECK_INTERVAL_SECONDS,
+	on_trigger_break=on_trigger_break,
+    	on_go_idle=on_go_idle,
+    	on_session_end=on_session_end,
+    	idle_timeout=config.IDLE_TIMEOUT_SECONDS,
+    	continuous_threshold=config.CONTINUOUS_THRESHOLD_SECONDS,
+    	check_interval=config.CHECK_INTERVAL_SECONDS,
     )
-
     app.state.tracker = tracker
 
     keyboard_listener, mouse_listener = start_listeners(tracker)
@@ -137,6 +137,37 @@ def wellness_today():
         "longest_session_seconds": result.longest_session_seconds,
         "average_session_seconds": result.average_session_seconds,
     }
+
+
+@app.get("/analytics/timeline")
+def health_timeline(start_date: str, end_date: str):
+    return analytics.get_health_timeline(config.DEVICE_ID, start_date, end_date)
+
+
+@app.get("/reports/weekly")
+def weekly_report():
+    return analytics.generate_report(config.DEVICE_ID, days=7)
+
+
+@app.get("/reports/monthly")
+def monthly_report():
+    return analytics.generate_report(config.DEVICE_ID, days=30)
+
+
+@app.get("/reports/weekly/export")
+def export_weekly(format: str = "json"):
+    report = analytics.generate_report(config.DEVICE_ID, days=7)
+    if format == "csv":
+        return Response(content=analytics.export_report_csv(report), media_type="text/csv")
+    return Response(content=analytics.export_report_json(report), media_type="application/json")
+
+
+@app.get("/reports/monthly/export")
+def export_monthly(format: str = "json"):
+    report = analytics.generate_report(config.DEVICE_ID, days=30)
+    if format == "csv":
+        return Response(content=analytics.export_report_csv(report), media_type="text/csv")
+    return Response(content=analytics.export_report_json(report), media_type="application/json")
 
 
 if __name__ == "__main__":
