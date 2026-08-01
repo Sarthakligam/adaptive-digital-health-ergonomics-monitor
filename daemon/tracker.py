@@ -46,8 +46,9 @@ class ActivityTracker:
         on_go_idle: Callable[[], None] = lambda: None,
         on_session_end: Callable[[float, str], None] = lambda duration, reason: None,
         clock: Callable[[], float] = time.monotonic,
-        idle_timeout: float = IDLE_TIMEOUT_SECONDS,
-        continuous_threshold: float = CONTINUOUS_THRESHOLD_SECONDS,
+        idle_timeout: float = 5 * 60,
+        continuous_threshold: float = 20 * 60,
+        check_interval: float = 5,
     ):
         self._state = TrackerState()
         self._lock = threading.Lock()
@@ -57,6 +58,7 @@ class ActivityTracker:
         self._clock = clock
         self._idle_timeout = idle_timeout
         self._continuous_threshold = continuous_threshold
+        self._check_interval = check_interval
         self._stop_event = threading.Event()
 
     def on_input_event(self) -> None:
@@ -124,7 +126,7 @@ class ActivityTracker:
 
     def run(self) -> None:
         """Background loop — call tick() every CHECK_INTERVAL_SECONDS until stop()."""
-        while not self._stop_event.wait(CHECK_INTERVAL_SECONDS):
+        while not self._stop_event.wait(self._check_interval):
             self.tick()
 
     def stop(self) -> None:

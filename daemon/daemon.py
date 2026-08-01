@@ -121,7 +121,9 @@ def main() -> None:
         on_session_end=on_session_end,
         idle_timeout=config.IDLE_TIMEOUT_SECONDS,
         continuous_threshold=config.CONTINUOUS_THRESHOLD_SECONDS,
+        check_interval=config.CHECK_INTERVAL_SECONDS,
     )
+
     keyboard_listener, mouse_listener = start_listeners(tracker)
 
     tracker_thread = threading.Thread(target=tracker.run, daemon=True)

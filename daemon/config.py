@@ -41,10 +41,11 @@ DATA_DIR = Path(os.getenv("ADHEM_DATA_DIR", str(Path.home() / ".adhem")))
 DB_PATH = DATA_DIR / os.getenv("ADHEM_DB_NAME", "adhem.db")
 LOG_PATH = DATA_DIR / "adhem.log"
 
-IDLE_TIMEOUT_SECONDS = int(os.getenv("ADHEM_IDLE_TIMEOUT", str(5 * 60)))
-CONTINUOUS_THRESHOLD_SECONDS = int(os.getenv("ADHEM_CONTINUOUS_THRESHOLD", str(20 * 60)))
-CHECK_INTERVAL_SECONDS = int(os.getenv("ADHEM_CHECK_INTERVAL", "5"))
-SNOOZE_GRACE_SECONDS = int(os.getenv("ADHEM_SNOOZE_GRACE", str(5 * 60)))
+IDLE_TIMEOUT_SECONDS = int(os.getenv("ADHEM_IDLE_TIMEOUT", str(5 * 60)))            # 5 minutes
+CONTINUOUS_THRESHOLD_SECONDS = int(os.getenv("ADHEM_CONTINUOUS_THRESHOLD", str(20 * 60)))  # 20 minutes
+CHECK_INTERVAL_SECONDS = int(os.getenv("ADHEM_CHECK_INTERVAL", "5"))                # check every 5 seconds
+SNOOZE_GRACE_SECONDS = int(os.getenv("ADHEM_SNOOZE_GRACE", str(5 * 60)))            # 5 minutes
+DAILY_BREAK_GOAL = int(os.getenv("ADHEM_DAILY_BREAK_GOAL", "4"))
 
 WS_HOST = os.getenv("ADHEM_WS_HOST", "0.0.0.0")
 WS_PORT = int(os.getenv("ADHEM_WS_PORT", "8000"))

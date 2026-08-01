@@ -30,6 +30,7 @@ from tracker import ActivityTracker
 from db import init_db
 from daemon import log_event, log_session, start_listeners
 from ws_manager import ConnectionManager
+from wellness import compute_daily_wellness
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,9 @@ async def lifespan(app: FastAPI):
         on_session_end=on_session_end,
         idle_timeout=config.IDLE_TIMEOUT_SECONDS,
         continuous_threshold=config.CONTINUOUS_THRESHOLD_SECONDS,
+        check_interval=config.CHECK_INTERVAL_SECONDS,
     )
+
     app.state.tracker = tracker
 
     keyboard_listener, mouse_listener = start_listeners(tracker)
@@ -119,6 +122,21 @@ def break_outcome(payload: BreakOutcome):
         app.state.tracker.snooze_break(config.SNOOZE_GRACE_SECONDS)
     log_event(f"break_{payload.outcome}")
     return {"status": "ok"}
+
+
+@app.get("/wellness/today")
+def wellness_today():
+    result = compute_daily_wellness(config.DEVICE_ID)
+    return {
+        "date": result.date,
+        "score": result.score,
+        "fatigue_risk": result.fatigue_risk,
+        "reasons": result.reasons,
+        "healthy_breaks": result.healthy_breaks,
+        "daily_goal": result.daily_goal,
+        "longest_session_seconds": result.longest_session_seconds,
+        "average_session_seconds": result.average_session_seconds,
+    }
 
 
 if __name__ == "__main__":
