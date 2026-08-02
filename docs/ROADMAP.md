@@ -19,7 +19,7 @@ Status reflects real progress, not a fixed schedule.
 - [x] **Day 6** — `sessions` table; `tracker.py` gains `snooze_break()` (grace-period suppression, does NOT reset the streak) and an `on_session_end` callback; `/break-outcome` now correctly distinguishes a real break from a snooze.
 - [x] **Day 7** — Digital Wellness Score (explainable, `wellness.py`) + Fatigue Risk Indicator (Low/Moderate/High) + Daily Wellness Goal, exposed via `GET /wellness/today`.
 - [x] **Day 8** — Analytics (`analytics.py`: session stats, daily trend), Health Timeline (merges events + healthy sessions), Weekly/Monthly Reports, CSV/JSON export — all exposed via new endpoints.
-- [ ] **Day 9** — Adaptive (heuristic) reminder intervals + Configurable Wellness Profiles + Categorized Smart Suggestions
+- [x] **Day 9** — Adaptive reminder intervals (`adaptive.py`, tightens after a High-risk day), Configurable Wellness Profiles (`profiles.py`: Student/Developer/Designer/Office Employee), Categorized Smart Suggestions (`suggestions.py`, 6 categories, never repeats back-to-back). The real daemon now actually uses these (not just informational endpoints) — Phase 1 (local engine & intelligence) is complete.
 
 ## Phase 2: Linux Deployment (Day 10)
 - [ ] **Day 10** — `ergomonitor.service` systemd unit; boot/restart/background testing

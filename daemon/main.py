@@ -32,6 +32,9 @@ from daemon import log_event, log_session, start_listeners
 from ws_manager import ConnectionManager
 from wellness import compute_daily_wellness
 import analytics
+import profiles
+from adaptive import get_todays_threshold
+from suggestions import get_next_suggestion
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +70,16 @@ async def lifespan(app: FastAPI):
     main_loop = asyncio.get_running_loop()
 
     init_db()
+    active_profile = profiles.get_profile(profiles.get_active_profile_key())
+    todays = get_todays_threshold(config.DEVICE_ID)
+    logger.info(f"profile={active_profile.display_name}; {todays['reason']}")
+
     tracker = ActivityTracker(
-	on_trigger_break=on_trigger_break,
-    	on_go_idle=on_go_idle,
-    	on_session_end=on_session_end,
-    	idle_timeout=config.IDLE_TIMEOUT_SECONDS,
-    	continuous_threshold=config.CONTINUOUS_THRESHOLD_SECONDS,
-    	check_interval=config.CHECK_INTERVAL_SECONDS,
+        on_trigger_break=on_trigger_break,
+        on_go_idle=on_go_idle,
+        on_session_end=on_session_end,
+        idle_timeout=active_profile.idle_timeout_seconds,
+        continuous_threshold=todays["threshold_seconds"],
     )
     app.state.tracker = tracker
 
@@ -168,6 +174,44 @@ def export_monthly(format: str = "json"):
     if format == "csv":
         return Response(content=analytics.export_report_csv(report), media_type="text/csv")
     return Response(content=analytics.export_report_json(report), media_type="application/json")
+
+
+@app.get("/profile")
+def get_active_profile():
+    key = profiles.get_active_profile_key()
+    p = profiles.get_profile(key)
+    return {"key": p.key, "display_name": p.display_name, "description": p.description,
+            "continuous_threshold_seconds": p.continuous_threshold_seconds,
+            "idle_timeout_seconds": p.idle_timeout_seconds}
+
+
+@app.get("/profile/options")
+def list_profile_options():
+    return [{"key": p.key, "display_name": p.display_name, "description": p.description}
+            for p in profiles.PROFILES.values()]
+
+
+class ProfileChoice(BaseModel):
+    key: str
+
+
+@app.post("/profile")
+def set_profile(payload: ProfileChoice):
+    try:
+        p = profiles.set_active_profile(payload.key)
+    except ValueError as e:
+        return Response(content=str(e), status_code=400)
+    return {"status": "ok", "active_profile": p.display_name}
+
+
+@app.get("/adaptive-threshold")
+def adaptive_threshold():
+    return get_todays_threshold(config.DEVICE_ID)
+
+
+@app.get("/suggestion")
+def suggestion():
+    return get_next_suggestion()
 
 
 if __name__ == "__main__":
