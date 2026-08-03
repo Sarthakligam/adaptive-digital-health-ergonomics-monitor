@@ -22,10 +22,10 @@ Status reflects real progress, not a fixed schedule.
 - [x] **Day 9** — Adaptive reminder intervals (`adaptive.py`, tightens after a High-risk day), Configurable Wellness Profiles (`profiles.py`: Student/Developer/Designer/Office Employee), Categorized Smart Suggestions (`suggestions.py`, 6 categories, never repeats back-to-back). The real daemon now actually uses these (not just informational endpoints) — Phase 1 (local engine & intelligence) is complete.
 
 ## Phase 2: Linux Deployment (Day 10)
-- [ ] **Day 10** — `ergomonitor.service` systemd unit; boot/restart/background testing
+- [x] **Day 10** — `ergomonitor.service` user-level systemd unit written and delivered; boot/restart/background behavior needs verification on the actual VM (the one day so far I can't test myself — no real systemd/graphical session in this sandbox).
 
 ## Phase 3: AWS Cloud Integration (Days 11–16)
-- [ ] **Day 11** — RDS PostgreSQL instance + IAM roles
+- [ ] **Day 11** — RDS PostgreSQL instance + IAM database authentication (`cloud/`); delivered, needs verification against your actual AWS account (I have no AWS access to test this myself).
 - [ ] **Day 12** — Sync script: local SQLite → RDS (now including sessions + wellness data), 24h/shutdown trigger, offline retry
 - [ ] **Day 13** — API Gateway + Lambda (historical data endpoint)
 - [ ] **Day 14** — Cognito, part 1: user pool + app client setup
@@ -41,3 +41,4 @@ Status reflects real progress, not a fixed schedule.
 - [ ] **Day 20** — Graceful failure testing (offline scenarios) + UI/UX polish
 - [ ] **Day 21** — Architecture diagrams + documentation
 - [ ] **Day 22** — Final presentation prep
+
